@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kingsley Ong An Xuan — Fine Art Portfolio & CMS</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,400&family=Inter:wght@200;300;400;500;600&display=swap" rel="stylesheet">
+  
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            serif: ['Cormorant Garamond', 'Georgia', 'serif'],
+            sans: ['Inter', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#FAF9F6',
+              100: '#F4F3EF',
+              200: '#E6E4DE',
+              800: '#1F1F1F',
+              900: '#0F0F10',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Custom Luxury Styling & Animations */
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #FAFAFA;
+      color: #111111;
+      overflow-x: hidden;
+    }
+
+    h1, h2, h3, h4, .font-serif-custom {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+    }
+
+    /* Stage Ambiance Colors */
+    .stage-minimal { background-color: #FFFFFF; }
+    .stage-studio { background-color: #EAEAEA; }
+    .stage-gallery { background-color: #FAF7F2; }
+    .stage-dark { background-color: #121212; color: #FFF; }
+
+    /* 3D Tilt Wrapper */
+    .artwork-stage {
+      perspective: 1200px;
+    }
+
+    .tilt-card {
+      transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease;
+      transform-style: preserve-3d;
+    }
+
+    /* Pulse Hotspots */
+    .hotspot-point {
+      position: absolute;
+      transform: translate(-50%, -50%);
+      z-index: 20;
+    }
+
+    .hotspot-pulse {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      background: rgba(0, 0, 0, 0.2);
+      animation: pulse 2s infinite ease-in-out;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(1); opacity: 0.8; }
+      100% { transform: scale(2.2); opacity: 0; }
+    }
+
+    /* Toast Notification */
+    #toastContainer {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      z-index: 1000;
+    }
+  </style>
+</head>
+<body class="antialiased text-neutral-900 bg-[#FAFAFA]">
+
+  <!-- PUBLIC NAVBAR -->
+  <nav class="fixed top-0 left-0 w-full z-50 bg-[#FAFAFA]/90 backdrop-blur-md border-b border-black/5 transition-all duration-300">
+    <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+      <a href="#" class="font-serif-custom text-xl md:text-2xl tracking-widest uppercase font-medium">
+        Kingsley Ong An Xuan
+      </a>
+
+      <div class="hidden md:flex items-center gap-8 text-xs tracking-widest uppercase text-neutral-500 font-medium">
+        <a href="#featured" class="hover:text-black transition">Featured</a>
+        <a href="#about" class="hover:text-black transition">Biography</a>
+        <a href="#archive" class="hover:text-black transition">Gallery Archive</a>
+        <a href="#contact" class="hover:text-black transition">Inquiries</a>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <!-- CMS TOGGLE BUTTON -->
+        <button id="openAdminBtn" onclick="toggleAdminPanel()" class="flex items-center gap-2 px-3 py-1.5 text-xs uppercase tracking-wider bg-black text-white rounded-sm hover:bg-neutral-800 transition">
+          <i data-lucide="sliders-horizontal" class="w-3.5 h-3.5"></i>
+          <span>CMS Portal</span>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- MAIN PUBLIC CONTENT WRAPPER -->
+  <div id="publicSite">
+    
+    <!-- FEATURED SHOWCASE SECTION -->
+    <section id="featured" class="min-h-screen pt-28 pb-16 flex items-center justify-center">
+      <div class="max-w-7xl mx-auto px-6 w-full grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+        
+        <!-- ARTWORK DISPLAY STAGE (8 cols) -->
+        <div class="lg:col-span-7">
+          <div id="featuredStage" class="artwork-stage stage-minimal p-8 md:p-12 rounded-sm relative shadow-inner border border-black/5 min-h-[500px] flex items-center justify-center transition-colors duration-500">
+            
+            <div id="tiltWrapper" class="tilt-card relative max-w-md w-full shadow-2xl cursor-pointer group">
+              <img id="featuredImage" src="" alt="Featured Artwork" class="w-full h-auto rounded-sm block object-cover">
+              
+              <!-- Hotspots Layer -->
+              <div id="hotspotsContainer" class="absolute inset-0 pointer-events-auto"></div>
+
+              <!-- Zoom Hint Overlay -->
+              <div onclick="openLightbox()" class="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white gap-2 text-xs uppercase tracking-widest pointer-events-none">
+                <i data-lucide="maximize-2" class="w-4 h-4"></i> Inspect High-Res
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- ARTWORK SPECS & DESCRIPTION (5 cols) -->
+        <div class="lg:col-span-5 flex flex-col justify-center space-y-6">
+          <div>
+            <span class="text-xs uppercase tracking-[0.25em] text-neutral-400 font-medium">Featured Masterpiece</span>
+            <h1 id="featuredTitle" class="font-serif-custom text-4xl md:text-5xl lg:text-6xl text-neutral-900 mt-1 font-light leading-tight">
+              Loading...
+            </h1>
+            <div class="mt-3 inline-flex items-center gap-2 px-3 py-1 bg-black/5 rounded-full text-xs text-neutral-600 font-medium">
+              <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
+              <span id="featuredSubject">---</span>
+            </div>
+          </div>
+
+          <p id="featuredDescription" class="text-neutral-600 text-sm leading-relaxed italic border-l-2 border-black/10 pl-4 py-1">
+            ---
+          </p>
+
+          <!-- Specifications Grid -->
+          <div class="grid grid-cols-2 gap-4 py-4 border-y border-neutral-200 text-xs">
+            <div>
+              <span class="uppercase tracking-widest text-neutral-400 block mb-0.5">Medium</span>
+              <span id="featuredMedium" class="font-medium text-neutral-800 text-sm">---</span>
+            </div>
+            <div>
+              <span class="uppercase tracking-widest text-neutral-400 block mb-0.5">Dimensions / Size</span>
+              <span id="featuredSize" class="font-medium text-neutral-800 text-sm">---</span>
+            </div>
+            <div>
+              <span class="uppercase tracking-widest text-neutral-400 block mb-0.5">Year</span>
+              <span id="featuredYear" class="font-medium text-neutral-800 text-sm">---</span>
+            </div>
+            <div>
+              <span class="uppercase tracking-widest text-neutral-400 block mb-0.5">Artist</span>
+              <span class="font-medium text-neutral-800 text-sm">Kingsley Ong An Xuan</span>
+            </div>
+          </div>
+
+          <!-- Stage Lighting Switcher -->
+          <div class="flex items-center gap-3 pt-2">
+            <span class="text-xs uppercase tracking-widest text-neutral-400 font-medium">Stage Light:</span>
+            <div class="flex gap-2">
+              <button onclick="setStageAmbiance('stage-minimal')" class="w-6 h-6 rounded-full bg-white border border-neutral-300 shadow-sm focus:ring-2 ring-black" title="Minimal Light"></button>
+              <button onclick="setStageAmbiance('stage-studio')" class="w-6 h-6 rounded-full bg-[#EAEAEA] border border-neutral-300 focus:ring-2 ring-black" title="Concrete Gray"></button>
+              <button onclick="setStageAmbiance('stage-gallery')" class="w-6 h-6 rounded-full bg-[#FAF7F2] border border-neutral-300 focus:ring-2 ring-black" title="Warm Gallery"></button>
+              <button onclick="setStageAmbiance('stage-dark')" class="w-6 h-6 rounded-full bg-[#121212] focus:ring-2 ring-black" title="Dark Vault"></button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- GALLERY ARCHIVE SECTION -->
+    <section id="archive" class="py-24 border-t border-neutral-200/80 bg-white">
+      <div class="max-w-7xl mx-auto px-6">
+        
+        <div class="text-center max-w-xl mx-auto mb-16 space-y-2">
+          <span class="text-xs uppercase tracking-[0.25em] text-neutral-400 font-medium">Selected Works</span>
+          <h2 class="font-serif-custom text-3xl md:text-4xl text-neutral-900 font-light">Gallery Archive</h2>
+          <p class="text-xs text-neutral-500">Explore Kingsley Ong An Xuan's traditional fine art illustrations.</p>
+        </div>
+
+        <!-- Grid Container -->
+        <div id="galleryGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <!-- Dynamically populated via JavaScript -->
+        </div>
+
+      </div>
+    </section>
+
+    <!-- BIOGRAPHY & FORMATION SECTION -->
+    <section id="about" class="py-24 bg-[#FAFAFA] border-t border-neutral-200">
+      <div class="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+        
+        <div class="lg:col-span-6 space-y-6">
+          <span class="text-xs uppercase tracking-[0.25em] text-neutral-400 font-medium">Artist Biography</span>
+          <h2 class="font-serif-custom text-3xl md:text-4xl text-neutral-900 font-light leading-snug">
+            Draftsmanship, Motion & Fine Traditional Detail
+          </h2>
+          <div class="text-neutral-600 text-sm leading-relaxed space-y-4">
+            <p>
+              Kingsley Ong An Xuan is a fine artist and illustrator based in Kuala Lumpur, Malaysia. Specializing in traditional mediums including fine colored pencil rendering, graphite drafting, and illustrative studies, his work explores dynamic perspective, anatomical flow, and high-precision detail.
+            </p>
+            <p>
+              Over a twelve-year period of structured artistic development, Kingsley cultivated a disciplined foundation in classical proportion, shading, and figurative structure before advancing into high-level anime and character studies.
+            </p>
+          </div>
+        </div>
+
+        <!-- Formative Education Timeline -->
+        <div class="lg:col-span-6 bg-white p-8 border border-neutral-200 rounded-sm shadow-sm space-y-6">
+          <h3 class="font-serif-custom text-2xl text-neutral-900 border-b border-neutral-100 pb-3">Artistic Formation</h3>
+          
+          <div class="space-y-6 relative pl-6 border-l border-neutral-200">
+            
+            <div class="relative">
+              <div class="absolute -left-[31px] top-1.5 w-2.5 h-2.5 rounded-full bg-neutral-900"></div>
+              <span class="text-[10px] uppercase tracking-widest text-neutral-400 font-medium">2019 — 2024</span>
+              <h4 class="text-base font-medium text-neutral-900 mt-0.5">TK Art Studio</h4>
+              <p class="text-xs text-neutral-500 mt-1">Advanced traditional media studies, figurative drawing, anatomical movement, and color theory mastery.</p>
+            </div>
+
+            <div class="relative">
+              <div class="absolute -left-[31px] top-1.5 w-2.5 h-2.5 rounded-full bg-neutral-400"></div>
+              <span class="text-[10px] uppercase tracking-widest text-neutral-400 font-medium">2012 — 2018</span>
+              <h4 class="text-base font-medium text-neutral-900 mt-0.5">Global Art</h4>
+              <p class="text-xs text-neutral-500 mt-1">Foundational visual training, perspective geometry, sketch fundamentals, and early draftsmanship.</p>
+            </div>
+
+            <div class="relative">
+              <div class="absolute -left-[31px] top-1.5 w-2.5 h-2.5 rounded-full bg-neutral-300"></div>
+              <span class="text-[10px] uppercase tracking-widest text-neutral-400 font-medium">Base Location</span>
+              <h4 class="text-base font-medium text-neutral-900 mt-0.5">Kuala Lumpur, Malaysia</h4>
+              <p class="text-xs text-neutral-500 mt-1">Active in fine art illustration, private commissions, and portfolio curation.</p>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- CONTACT SECTION -->
+    <section id="contact" class="py-24 bg-white border-t border-neutral-200">
+      <div class="max-w-xl mx-auto px-6 text-center space-y-6">
+        <span class="text-xs uppercase tracking-[0.25em] text-neutral-400 font-medium">Get in Touch</span>
+        <h2 class="font-serif-custom text-3xl md:text-4xl text-neutral-900 font-light">Exhibition & Inquiry</h2>
+        <p class="text-xs text-neutral-500 leading-relaxed">
+          For gallery display inquiries, art collection requests, or private commissions, please send a message directly.
+        </p>
+
+        <form onsubmit="handleInquirySubmit(event)" class="space-y-4 text-left pt-4">
+          <div>
+            <label class="block text-[10px] uppercase tracking-widest text-neutral-400 mb-1">Your Name</label>
+            <input type="text" required class="w-full px-4 py-3 bg-neutral-50 border border-neutral-200 text-xs rounded-sm focus:outline-none focus:border-neutral-900 transition" placeholder="e.g. Gallery Collector">
+          </div>
+          <div>
+            <label class="block text-[10px] uppercase tracking-widest text-neutral-400 mb-1">Email Address</label>
+            <input type="email" required class="w-full px-4 py-3 bg-neutral-50 border border-neutral-200 text-xs rounded-sm focus:outline-none focus:border-neutral-900 transition" placeholder="e.g. name@example.com">
+          </div>
+          <div>
+            <label class="block text-[10px] uppercase tracking-widest text-neutral-400 mb-1">Message</label>
+            <textarea rows="4" required class="w-full px-4 py-3 bg-neutral-50 border border-neutral-200 text-xs rounded-sm focus:outline-none focus:border-neutral-900 transition" placeholder="Share your message or inquiry details..."></textarea>
+          </div>
+          <button type="submit" class="w-full py-3.5 bg-black text-white text-xs uppercase tracking-widest font-medium hover:bg-neutral-800 transition rounded-sm">
+            Send Inquiry
+          </button>
+        </form>
+      </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="py-8 bg-[#FAFAFA] border-t border-neutral-200 text-xs text-neutral-400">
+      <div class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-4">
+        <div>© 2026 Kingsley Ong An Xuan. All rights reserved.</div>
+        <div class="flex items-center gap-6 uppercase tracking-wider text-[10px]">
+          <span>Kuala Lumpur, Malaysia</span>
+          <span>•</span>
+          <button onclick="toggleAdminPanel()" class="hover:text-black underline">CMS Dashboard</button>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <!-- INTEGRATED CMS / ADMIN DASHBOARD PANEL MODAL -->
+  <div id="adminModal" class="fixed inset-0 z-[100] bg-black/60 backdrop-blur-md hidden flex items-center justify-center p-4 md:p-8">
+    <div class="bg-white w-full max-w-5xl max-h-[90vh] rounded-sm shadow-2xl flex flex-col overflow-hidden border border-neutral-200">
+      
+      <!-- CMS Header -->
+      <div class="px-6 py-4 border-b border-neutral-200 bg-neutral-900 text-white flex justify-between items-center">
+        <div class="flex items-center gap-3">
+          <i data-lucide="layout-dashboard" class="w-5 h-5 text-neutral-400"></i>
+          <div>
+            <h3 class="font-serif-custom text-xl tracking-wide">Artist CMS & Portfolio Manager</h3>
+            <p class="text-[10px] text-neutral-400 uppercase tracking-widest">Logged as Kingsley Ong An Xuan</p>
+          </div>
+        </div>
+        <button onclick="closeAdminPanel()" class="text-neutral-400 hover:text-white transition">
+          <i data-lucide="x" class="w-6 h-6"></i>
+        </button>
+      </div>
+
+      <!-- CMS AUTH LOCK SCREEN (Shown if not logged in) -->
+      <div id="adminAuthScreen" class="p-12 text-center max-w-md mx-auto my-auto space-y-4">
+        <i data-lucide="lock" class="w-10 h-10 text-neutral-400 mx-auto"></i>
+        <h4 class="font-serif-custom text-2xl">CMS Passcode Required</h4>
+        <p class="text-xs text-neutral-500">Enter your passcode to manage artwork uploads, featured items, and content.</p>
+        <p class="text-[10px] bg-neutral-100 p-2 text-neutral-500 rounded font-mono">Default Passcode: <strong>admin123</strong></p>
+        
+        <form onsubmit="handleAdminLogin(event)" class="space-y-3 pt-2">
+          <input type="password" id="adminPassInput" placeholder="Enter passcode" required class="w-full px-4 py-2.5 border border-neutral-300 text-xs rounded text-center focus:outline-none focus:border-black">
+          <button type="submit" class="w-full py-2.5 bg-black text-white text-xs uppercase tracking-widest hover:bg-neutral-800 transition">
+            Unlock CMS
+          </button>
+        </form>
+      </div>
+
+      <!-- CMS MAIN WORKSPACE (Shown after login) -->
+      <div id="adminWorkspace" class="flex-1 overflow-y-auto p-6 grid grid-cols-1 lg:grid-cols-12 gap-8 hidden">
+        
+        <!-- FORM: ADD / EDIT ARTWORK (5 cols) -->
+        <div class="lg:col-span-5 bg-neutral-50 p-6 border border-neutral-200 rounded space-y-4">
+          <div class="flex justify-between items-center border-b border-neutral-200 pb-3">
+            <h4 id="formHeading" class="font-serif-custom text-xl font-medium">Add New Artwork</h4>
+            <button id="cancelEditBtn" onclick="resetForm()" class="text-[10px] uppercase text-neutral-400 hover:text-black hidden">Cancel Edit</button>
+          </div>
+
+          <form id="artworkForm" onsubmit="handleSaveArtwork(event)" class="space-y-3 text-xs">
+            <input type="hidden" id="editArtworkId">
+
+            <!-- IMAGE UPLOAD OPTION -->
+            <div>
+              <label class="block text-[10px] uppercase tracking-widest text-neutral-500 mb-1">Artwork Image Source</label>
+              <div class="space-y-2">
+                <!-- File Dropzone -->
+                <div class="border-2 border-dashed border-neutral-300 rounded p-4 text-center hover:border-neutral-900 transition relative bg-white">
+                  <input type="file" id="fileInput" accept="image/*" onchange="handleFileSelect(event)" class="absolute inset-0 opacity-0 cursor-pointer w-full h-full">
+                  <i data-lucide="upload-cloud" class="w-6 h-6 text-neutral-400 mx-auto mb-1"></i>
+                  <span class="block text-[11px] text-neutral-600 font-medium">Click or Drag & Drop Image File</span>
+                  <span class="block text-[9px] text-neutral-400">JPG, PNG, WEBP supported</span>
+                </div>
+                <div class="text-center text-[10px] text-neutral-400">— OR —</div>
+                <!-- Image URL fallback -->
+                <input type="url" id="imageUrlInput" placeholder="Image URL (e.g. https://...)" class="w-full px-3 py-2 bg-white border border-neutral-200 rounded">
+              </div>
+              <div id="imagePreviewContainer" class="mt-2 hidden">
+                <img id="imagePreview" src="" alt="Preview" class="w-full h-32 object-cover rounded border border-neutral-200">
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-[10px] uppercase tracking-widest text-neutral-500 mb-1">Artwork Title</label>
+              <input type="text" id="titleInput" required placeholder="e.g. Muichiro Tokito" class="w-full px-3 py-2 bg-white border border-neutral-200 rounded">
+            </div>
+
+            <div>
+              <label class="block text-[10px] uppercase tracking-widest text-neutral-500 mb-1">Subject / Anime / Series</label>
+              <input type="text" id="subjectInput" required placeholder="e.g. Demon Slayer: Kimetsu no Yaiba - Mist Hashira" class="w-full px-3 py-2 bg-white border border-neutral-200 rounded">
+            </div>
+
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="block text-[10px] uppercase tracking-widest text-neutral-500 mb-1">Medium</label>
+                <input type="text" id="mediumInput" required placeholder="e.g. Colored Pencil on Paper" class="w-full px-3 py-2 bg-white border border-neutral-200 rounded">
+              </div>
+              <div>
+                <label class="block text-[10px] uppercase tracking-widest text-neutral-500 mb-1">Dimensions / Size</label>
+                <input type="text" id="sizeInput" required placeholder="e.g. A4 (210 x 297 mm)" class="w-full px-3 py-2 bg-white border border-neutral-200 rounded">
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="block text-[10px] uppercase tracking-widest text-neutral-500 mb-1">Year Created</label>
+                <input type="text" id="yearInput" required placeholder="e.g. 2024" class="w-full px-3 py-2 bg-white border border-neutral-200 rounded">
+              </div>
+              <div class="flex items-center pt-4">
+                <label class="flex items-center gap-2 cursor-pointer text-neutral-700">
+                  <input type="checkbox" id="featuredCheck" class="rounded border-neutral-300">
+                  <span>Set as Featured Hero</span>
+                </label>
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-[10px] uppercase tracking-widest text-neutral-500 mb-1">Curator Notes / Description</label>
+              <textarea id="descInput" rows="3" required placeholder="Describe drawing techniques, shading details, or notes..." class="w-full px-3 py-2 bg-white border border-neutral-200 rounded"></textarea>
+            </div>
+
+            <button type="submit" class="w-full py-3 bg-black text-white text-xs uppercase tracking-widest hover:bg-neutral-800 transition rounded font-medium">
+              Save & Publish Artwork
+            </button>
+          </form>
+        </div>
+
+        <!-- LIST: ARTWORK MANAGEMENT TABLE (7 cols) -->
+        <div class="lg:col-span-7 space-y-4">
+          <div class="flex justify-between items-center border-b border-neutral-200 pb-3">
+            <h4 class="font-serif-custom text-xl font-medium">Portfolio Collection (<span id="artworkCount">0</span>)</h4>
+            <span class="text-[10px] text-neutral-400">Stored persistently in Browser State</span>
+          </div>
+
+          <div id="cmsArtworkList" class="space-y-3 max-h-[500px] overflow-y-auto pr-1">
+            <!-- Dynamically populated artwork rows -->
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+  <!-- LIGHTBOX INSPECTION MODAL -->
+  <div id="lightbox" onclick="closeLightbox()" class="fixed inset-0 z-[200] bg-black/95 hidden flex items-center justify-center p-4">
+    <button onclick="closeLightbox()" class="absolute top-6 right-6 text-white text-2xl">&times;</button>
+    <img id="lightboxImage" src="" alt="Enlarged Artwork" class="max-w-[92vw] max-h-[92vh] object-contain shadow-2xl">
+  </div>
+
+  <!-- TOAST NOTIFICATION CONTAINER -->
+  <div id="toastContainer"></div>
+
+  <script>
+    /* ARTWORK DATA STORAGE & INITIALIZATION */
+    const DEFAULT_ARTWORKS = [
+      {
+        id: 'muichiro-tokito-01',
+        title: 'Muichiro Tokito',
+        subject: 'Demon Slayer: Kimetsu no Yaiba (Mist Hashira)',
+        medium: 'Colored Pencil on Paper',
+        size: 'A4 (210 × 297 mm)',
+        year: '2024',
+        image: 'https://lh3.googleusercontent.com/d/14IIn4_N-lZIsOAn0e58-o6-8_HnN9fP2',
+        description: 'An original traditional study of Muichiro Tokito captured in mid-motion. Rendered using layered colored pencils, emphasizing weightless hair dynamics, dramatic katana foreshortening, and fluid mist aesthetics.',
+        featured: true,
+        hotspots: [
+          { top: '54%', left: '45%', title: 'Soft Gradient Layering', desc: 'Subtle colored pencil blending capturing Tokito\'s distant expression.' },
+          { top: '35%', left: '48%', title: 'Nichirin Blade', desc: 'Precision burnishing producing light reflection across the mist blade.' },
+          { top: '60%', left: '62%', title: 'Uniform Folds', desc: 'Deep graphite & indigo pencil saturation creating weighted fabric folds.' }
+        ]
+      }
+    ];
+
+    let artworks = [];
+    let isAdminLoggedIn = false;
+    let selectedImageData = '';
+
+    window.onload = function() {
+      loadArtworksData();
+      renderPublicPage();
+      setupTiltEffect();
+      lucide.createIcons();
+    };
+
+    /* DATA PERSISTENCE FUNCTIONS */
+    function loadArtworksData() {
+      const saved = localStorage.getItem('kingsley_portfolio_artworks');
+      if (saved) {
+        try {
+          artworks = JSON.parse(saved);
+        } catch (e) {
+          artworks = DEFAULT_ARTWORKS;
+        }
+      } else {
+        artworks = DEFAULT_ARTWORKS;
+        saveArtworksData();
+      }
+    }
+
+    function saveArtworksData() {
+      localStorage.setItem('kingsley_portfolio_artworks', JSON.stringify(artworks));
+    }
+
+    /* PUBLIC RENDER FUNCTIONS */
+    function renderPublicPage() {
+      const featured = artworks.find(a => a.featured) || artworks[0];
+      
+      if (featured) {
+        document.getElementById('featuredImage').src = featured.image;
+        document.getElementById('featuredTitle').innerText = featured.title;
+        document.getElementById('featuredSubject').innerText = featured.subject;
+        document.getElementById('featuredMedium').innerText = featured.medium;
+        document.getElementById('featuredSize').innerText = featured.size;
+        document.getElementById('featuredYear').innerText = featured.year;
+        document.getElementById('featuredDescription').innerText = featured.description;
+
+        // Render Hotspots
+        const hotspotsContainer = document.getElementById('hotspotsContainer');
+        hotspotsContainer.innerHTML = '';
+        if (featured.hotspots && featured.hotspots.length) {
+          featured.hotspots.forEach(hp => {
+            const el = document.createElement('div');
+            el.className = 'hotspot-point group';
+            el.style.top = hp.top;
+            el.style.left = hp.left;
+            el.innerHTML = `
+              <div class="relative w-6 h-6 flex items-center justify-center cursor-pointer">
+                <div class="hotspot-pulse"></div>
+                <div class="w-2.5 h-2.5 bg-black rounded-full z-10 border border-white"></div>
+                <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 bg-neutral-900 text-white text-[10px] p-2.5 rounded shadow-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none text-center">
+                  <strong class="block text-white font-medium mb-0.5">${hp.title}</strong>
+                  <span class="text-neutral-300 leading-tight block">${hp.desc}</span>
+                </div>
+              </div>
+            `;
+            hotspotsContainer.appendChild(el);
+          });
+        }
+      }
+
+      // Render Gallery Archive Grid
+      const grid = document.getElementById('galleryGrid');
+      grid.innerHTML = '';
+
+      artworks.forEach(art => {
+        const card = document.createElement('div');
+        card.className = 'bg-white border border-neutral-200/80 rounded-sm overflow-hidden group hover:-translate-y-1.5 transition-all duration-300 shadow-sm hover:shadow-xl';
+        card.innerHTML = `
+          <div class="aspect-[3/4] bg-neutral-100 overflow-hidden relative cursor-pointer" onclick="openLightboxForImg('${art.image}')">
+            <img src="${art.image}" alt="${art.title}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+            ${art.featured ? '<span class="absolute top-3 left-3 bg-black text-white text-[9px] uppercase tracking-widest px-2.5 py-1 font-medium">Featured</span>' : ''}
+          </div>
+          <div class="p-5 space-y-1">
+            <h3 class="font-serif-custom text-2xl text-neutral-900 font-light">${art.title}</h3>
+            <p class="text-xs text-neutral-500">${art.subject}</p>
+            <div class="text-[10px] uppercase tracking-wider text-neutral-400 pt-2 border-t border-neutral-100 flex justify-between">
+              <span>${art.medium}</span>
+              <span>${art.year}</span>
+            </div>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+
+      lucide.createIcons();
+    }
+
+    /* STAGE LIGHTING SWITCHER */
+    function setStageAmbiance(themeClass) {
+      const stage = document.getElementById('featuredStage');
+      stage.className = `artwork-stage ${themeClass} p-8 md:p-12 rounded-sm relative shadow-inner border border-black/5 min-h-[500px] flex items-center justify-center transition-colors duration-500`;
+    }
+
+    /* 3D TILT EFFECT */
+    function setupTiltEffect() {
+      const stage = document.getElementById('featuredStage');
+      const tiltWrapper = document.getElementById('tiltWrapper');
+
+      stage.addEventListener('mousemove', (e) => {
+        const rect = stage.getBoundingClientRect();
+        const x = e.clientX - rect.left - (rect.width / 2);
+        const y = e.clientY - rect.top - (rect.height / 2);
+
+        const rotateX = (-y / rect.height) * 12;
+        const rotateY = (x / rect.width) * 12;
+
+        tiltWrapper.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+      });
+
+      stage.addEventListener('mouseleave', () => {
+        tiltWrapper.style.transform = `rotateX(0deg) rotateY(0deg)`;
+      });
+    }
+
+    /* LIGHTBOX INSPECTION */
+    function openLightbox() {
+      const featured = artworks.find(a => a.featured) || artworks[0];
+      if (featured) openLightboxForImg(featured.image);
+    }
+
+    function openLightboxForImg(src) {
+      document.getElementById('lightboxImage').src = src;
+      document.getElementById('lightbox').classList.remove('hidden');
+    }
+
+    function closeLightbox() {
+      document.getElementById('lightbox').classList.add('hidden');
+    }
+
+    /* CMS & ADMIN DASHBOARD LOGIC */
+    function toggleAdminPanel() {
+      const modal = document.getElementById('adminModal');
+      modal.classList.remove('hidden');
+
+      if (isAdminLoggedIn) {
+        document.getElementById('adminAuthScreen').classList.add('hidden');
+        document.getElementById('adminWorkspace').classList.remove('hidden');
+        renderCMSArtworkList();
+      } else {
+        document.getElementById('adminAuthScreen').classList.remove('hidden');
+        document.getElementById('adminWorkspace').classList.add('hidden');
+      }
+      lucide.createIcons();
+    }
+
+    function closeAdminPanel() {
+      document.getElementById('adminModal').classList.add('hidden');
+    }
+
+    function handleAdminLogin(e) {
+      e.preventDefault();
+      const pass = document.getElementById('adminPassInput').value;
+      if (pass === 'admin123' || pass === 'admin') {
+        isAdminLoggedIn = true;
+        showToast('Logged into CMS Portal successfully');
+        toggleAdminPanel();
+      } else {
+        showToast('Invalid passcode. Try "admin123"');
+      }
+    }
+
+    /* CMS FILE UPLOAD HANDLING */
+    function handleFileSelect(event) {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          selectedImageData = e.target.result;
+          document.getElementById('imagePreview').src = selectedImageData;
+          document.getElementById('imagePreviewContainer').classList.remove('hidden');
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    /* SAVE / EDIT ARTWORK */
+    function handleSaveArtwork(e) {
+      e.preventDefault();
+      
+      const editId = document.getElementById('editArtworkId').value;
+      const title = document.getElementById('titleInput').value;
+      const subject = document.getElementById('subjectInput').value;
+      const medium = document.getElementById('mediumInput').value;
+      const size = document.getElementById('sizeInput').value;
+      const year = document.getElementById('yearInput').value;
+      const desc = document.getElementById('descInput').value;
+      const isFeatured = document.getElementById('featuredCheck').checked;
+      const urlInput = document.getElementById('imageUrlInput').value;
+
+      const imageSrc = selectedImageData || urlInput || 'https://images.unsplash.com/photo-1579783902614-a3fb3927b675?auto=format&fit=crop&w=800&q=80';
+
+      if (isFeatured) {
+        artworks.forEach(a => a.featured = false);
+      }
+
+      if (editId) {
+        // Edit existing
+        const index = artworks.findIndex(a => a.id === editId);
+        if (index !== -1) {
+          artworks[index] = {
+            ...artworks[index],
+            title, subject, medium, size, year, description: desc,
+            image: selectedImageData ? selectedImageData : artworks[index].image,
+            featured: isFeatured
+          };
+          showToast('Artwork updated successfully!');
+        }
+      } else {
+        // Add New
+        const newArt = {
+          id: 'art-' + Date.now(),
+          title, subject, medium, size, year, description: desc,
+          image: imageSrc,
+          featured: isFeatured || artworks.length === 0,
+          hotspots: []
+        };
+        artworks.unshift(newArt);
+        showToast('New artwork published to portfolio!');
+      }
+
+      saveArtworksData();
+      renderPublicPage();
+      renderCMSArtworkList();
+      resetForm();
+    }
+
+    function editArtwork(id) {
+      const art = artworks.find(a => a.id === id);
+      if (!art) return;
+
+      document.getElementById('editArtworkId').value = art.id;
+      document.getElementById('titleInput').value = art.title;
+      document.getElementById('subjectInput').value = art.subject;
+      document.getElementById('mediumInput').value = art.medium;
+      document.getElementById('sizeInput').value = art.size;
+      document.getElementById('yearInput').value = art.year;
+      document.getElementById('descInput').value = art.description;
+      document.getElementById('featuredCheck').checked = art.featured;
+      document.getElementById('imageUrlInput').value = art.image.startsWith('data:') ? '' : art.image;
+
+      document.getElementById('imagePreview').src = art.image;
+      document.getElementById('imagePreviewContainer').classList.remove('hidden');
+
+      document.getElementById('formHeading').innerText = 'Edit Artwork';
+      document.getElementById('cancelEditBtn').classList.remove('hidden');
+    }
+
+    function deleteArtwork(id) {
+      if (confirm('Are you sure you want to delete this artwork?')) {
+        artworks = artworks.filter(a => a.id !== id);
+        if (artworks.length > 0 && !artworks.some(a => a.featured)) {
+          artworks[0].featured = true;
+        }
+        saveArtworksData();
+        renderPublicPage();
+        renderCMSArtworkList();
+        showToast('Artwork removed');
+      }
+    }
+
+    function setFeatured(id) {
+      artworks.forEach(a => a.featured = (a.id === id));
+      saveArtworksData();
+      renderPublicPage();
+      renderCMSArtworkList();
+      showToast('Featured artwork updated!');
+    }
+
+    function resetForm() {
+      document.getElementById('artworkForm').reset();
+      document.getElementById('editArtworkId').value = '';
+      selectedImageData = '';
+      document.getElementById('imagePreviewContainer').classList.add('hidden');
+      document.getElementById('formHeading').innerText = 'Add New Artwork';
+      document.getElementById('cancelEditBtn').classList.add('hidden');
+    }
+
+    /* RENDER CMS ARTWORK LIST TABLE */
+    function renderCMSArtworkList() {
+      const container = document.getElementById('cmsArtworkList');
+      document.getElementById('artworkCount').innerText = artworks.length;
+      container.innerHTML = '';
+
+      artworks.forEach(art => {
+        const row = document.createElement('div');
+        row.className = 'p-3 bg-white border border-neutral-200 rounded flex items-center justify-between gap-4 text-xs';
+        row.innerHTML = `
+          <div class="flex items-center gap-3">
+            <img src="${art.image}" class="w-12 h-12 object-cover rounded border border-neutral-200">
+            <div>
+              <div class="font-medium text-neutral-900 flex items-center gap-2">
+                <span>${art.title}</span>
+                ${art.featured ? '<span class="bg-black text-white text-[8px] px-1.5 py-0.5 uppercase tracking-widest rounded">Featured</span>' : ''}
+              </div>
+              <div class="text-[10px] text-neutral-400">${art.medium} • ${art.year}</div>
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            ${!art.featured ? `<button onclick="setFeatured('${art.id}')" class="px-2 py-1 bg-neutral-100 hover:bg-neutral-200 text-neutral-700 rounded text-[10px] uppercase">Feature</button>` : ''}
+            <button onclick="editArtwork('${art.id}')" class="p-1.5 hover:bg-neutral-100 text-neutral-600 rounded" title="Edit"><i data-lucide="edit-2" class="w-3.5 h-3.5"></i></button>
+            <button onclick="deleteArtwork('${art.id}')" class="p-1.5 hover:bg-red-50 text-red-600 rounded" title="Delete"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+          </div>
+        `;
+        container.appendChild(row);
+      });
+
+      lucide.createIcons();
+    }
+
+    /* INQUIRY FORM HANDLER */
+    function handleInquirySubmit(e) {
+      e.preventDefault();
+      showToast('Thank you! Your exhibition inquiry has been sent to Kingsley.');
+      e.target.reset();
+    }
+
+    /* TOAST NOTIFICATION UTILITY */
+    function showToast(message) {
+      const toast = document.createElement('div');
+      toast.className = 'bg-neutral-900 text-white px-4 py-3 rounded shadow-2xl text-xs flex items-center gap-2 transition-all duration-300 opacity-0 translate-y-2';
+      toast.innerHTML = `<i data-lucide="info" class="w-4 h-4 text-neutral-400"></i><span>${message}</span>`;
+      
+      const container = document.getElementById('toastContainer');
+      container.appendChild(toast);
+      lucide.createIcons();
+
+      setTimeout(() => {
+        toast.classList.remove('opacity-0', 'translate-y-2');
+      }, 10);
+
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'translate-y-2');
+        setTimeout(() => toast.remove(), 300);
+      }, 3500);
+    }
+  </script>
+</body>
+</html>
